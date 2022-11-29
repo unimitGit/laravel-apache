@@ -1,15 +1,28 @@
 FROM php:8.0-apache
 
-RUN apt-get update \
-    && apt install -y git nano lynx \
-    && docker-php-ext-install pdo_mysql
+
+RUN apt update \
+        && apt install -y \
+            g++ \
+            libicu-dev \
+            libpq-dev \
+            libzip-dev \
+            zip \
+            zlib1g-dev \
+            nano \
+            lynx \
+        && docker-php-ext-install \
+            intl \
+            opcache \
+            pdo \
+            pdo_pgsql \
+            pgsql \
+            pdo_mysql
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
-
-#COPY 90-xdebug.ini "${PHP_INI_DIR}/conf.d"
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/joruevo/public
 

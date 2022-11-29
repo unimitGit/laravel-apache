@@ -87,7 +87,7 @@ create devcontainer.json
 	"name": "APCH_LRV",
 	"dockerComposeFile": "../docker-compose.yml",
 	"service": "",
-	"workspaceFolder": "/var/www",
+	"workspaceFolder": "/var/www/html",
 	"shutdownAction":"stopCompose",
 	"customizations": {		
 		"vscode": {						
@@ -118,7 +118,7 @@ services:
     container_name: apache-php
     restart: unless-stopped
     volumes:
-      - ./volumes/apache-content:/var/www/html/joruevo/public
+      - ./volumes/apache-content:/var/www/html
       - ./volumes/xdebug-content:/usr/local/etc/php/conf.d
 
     networks:
@@ -180,22 +180,35 @@ zlib
 
 -----------------------------------------------------
 
+Note: some packages are needed by composer when is installing packages
+
 Dockerfile (parcial)
 
 FROM php:8.0-apache
 
-RUN apt-get update \
-    && apt install -y git nano lynx \
-    && docker-php-ext-install pdo_mysql
 
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug
+RUN apt update \
+        && apt install -y \
+            g++ \
+            libicu-dev \
+            libpq-dev \
+            libzip-dev \
+            zip \
+            zlib1g-dev \
+            nano \
+            lynx \
+        && docker-php-ext-install \
+            intl \
+            opcache \
+            pdo \
+            pdo_pgsql \
+            pgsql \
+            pdo_mysql
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-#COPY apache2.conf /etc/apache2/
-
-#COPY joruevo.conf /etc/apache2/sites-available
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/joruevo/public
 
@@ -208,7 +221,6 @@ COPY apache2.conf /etc/apache2/
 RUN a2enmod rewrite
 
 RUN service apache2 restart
-
 -----------------------------------------------------
 
 CONFIGURING XDEBUG
@@ -223,6 +235,43 @@ xdebug.client_host=172.18.0.5
 xdebug.idekey = VSCODE
 
 -----------------------------------------------------
+CREATING JORUEVO PROJECT
+
+/var/www/html
+
+composer create-project laravel/laravel joruevo
+
+ERROR
+
+permissions error
+
+/var/www/html/joruevo/storage/logs/
+
+SOLUTION
+
+/var/www/html/joruevo/storage# chmod 777 logs  <--
+
+
+ERROR
+permission error
+
+/var/www/html/joruevo/storage/framework/sessions/
+
+SOLUTION
+
+/var/www/html/joruevo/storage/framework# chmod 777 sessions <--
+
+
+ERROR
+permission error
+
+/var/www/html/joruevo/storage/framework/views/
+
+SOLUTION
+
+/var/www/html/joruevo/storage/framework# chmod 777 views <--
+
+
 -----------------------------------------------------
 -----------------------------------------------------
 -----------------------------------------------------

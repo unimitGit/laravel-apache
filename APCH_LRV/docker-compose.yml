@@ -9,7 +9,7 @@ services:
     container_name: apache-php
     restart: unless-stopped
     volumes:
-      - ./volumes/apache-content:/var/www/html/joruevo/public
+      - ./volumes/apache-content:/var/www/html
       - ./volumes/xdebug-content:/usr/local/etc/php/conf.d
 
     networks:

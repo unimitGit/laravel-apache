@@ -2,7 +2,7 @@
 	"name": "APCH_LRV",
 	"dockerComposeFile": "../docker-compose.yml",
 	"service": "php",
-	"workspaceFolder": "/var/www/html/joruevo/public",
+	"workspaceFolder": "/var/www/html",
 	"shutdownAction":"stopCompose",
 	"customizations": {		
 		"vscode": {						
