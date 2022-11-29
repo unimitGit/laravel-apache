@@ -1,0 +1,231 @@
+
+WEB PROJECT PHP APACHE LARAVEL
+
+DEVELOPED BY: JOSE LUIS PABON BURBANO COLOMBIA
+
+-----------------------------------------------------
+-----------------------------------------------------
+
+OPERATING SYSTEM: LINUX MINT 20.3
+
+lsb_release -a
+
+Distributor ID:	Linuxmint
+Description:	Linux Mint 20.3
+Release:	20.3
+Codename:	una
+
+BASED IN UBUNTU: 20.04
+
+cat /etc/upstream-release/lsb-release
+
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=20.04
+DISTRIB_CODENAME=focal
+DISTRIB_DESCRIPTION="Ubuntu Focal Fossa"
+
+-----------------------------------------------------
+DEVELOPMENT ENVIRONMENT: DOCKER 20.10.21
+
+docker --version
+Docker version 20.10.21, build baeda1f
+
+docker-compose version supported  3.8
+
+https://docs.docker.com/compose/compose-file/compose-file-v3/
+
+-----------------------------------------------------
+IDE  VISUAL STUDIO CODE v1.73.0
+
+PHP EXTENSIONS
+
+- php debug v1.29 by CODESTREAM
+- php inteliphense
+- php tools
+- laravel artisan
+- laravel blade snippets
+
+look into "more info" the identifier
+-----------------------------------------------------
+
+PHP LARAVEL 9
+
+REQUIREMENTS
+
+PHP 8.0
+
+Composer
+
+
+-----------------------------------------------------
+
+DIRECTORY STRUCTURE IN THE CONTAINER
+
+APCH_LRV
+
+	+ .devcontainer
+		devcontainer.json
+
+	+ volumes
+        apache-content
+
+	docker-compose.yml
+
+	apache2.conf
+
+    Dockerfile
+
+    90-xdebug.ini
+
+
+-----------------------------------------------------
+CONFIGURING .devcontainer
+
+create devcontainer.json
+
+{
+	"name": "APCH_LRV",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "",
+	"workspaceFolder": "/var/www",
+	"shutdownAction":"stopCompose",
+	"customizations": {		
+		"vscode": {						
+			"extensions": [
+				"xdebug.php-debug",
+				"bmewburn.vscode-intelephense-client",
+				"devsense.phptools-vscode",
+				"ryannaddy.laravel-artisan",
+				"onecentlin.laravel-blade",
+				"mrmlnc.vscode-apache"
+			]
+		}
+	}
+}
+
+-----------------------------------------------------
+
+docker-compose.yml (parcial)
+
+version: '3'  // <-- I get errors with version: '3.8'
+
+services:
+
+  php:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    container_name: apache-php
+    restart: unless-stopped
+    volumes:
+      - ./volumes/apache-content:/var/www/html/joruevo/public
+      - ./volumes/xdebug-content:/usr/local/etc/php/conf.d
+
+    networks:
+        apache_laravel_network:
+            ipv4_address: 172.18.0.2
+    ports:
+      - 80:80
+
+
+networks:
+  apache_laravel_network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.18.0.0/16
+
+
+-----------------------------------------------------
+LIST MODULES IN PHP INSIDE THE CONTAINER
+
+php -m
+
+root@9e95093b62ef:/var/www/html# php -m
+[PHP Modules]
+Core
+ctype
+curl
+date
+dom
+fileinfo
+filter
+ftp
+hash
+iconv
+json
+libxml
+mbstring
+mysqlnd
+openssl
+pcre
+PDO
+pdo_sqlite
+Phar
+posix
+readline
+Reflection
+session
+SimpleXML
+sodium
+SPL
+sqlite3
+standard
+tokenizer
+xml
+xmlreader
+xmlwriter
+zlib
+
+
+-----------------------------------------------------
+
+Dockerfile (parcial)
+
+FROM php:8.0-apache
+
+RUN apt-get update \
+    && apt install -y git nano lynx \
+    && docker-php-ext-install pdo_mysql
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+#COPY apache2.conf /etc/apache2/
+
+#COPY joruevo.conf /etc/apache2/sites-available
+
+ENV APACHE_DOCUMENT_ROOT /var/www/html/joruevo/public
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+COPY apache2.conf /etc/apache2/
+
+RUN a2enmod rewrite
+
+RUN service apache2 restart
+
+-----------------------------------------------------
+
+CONFIGURING XDEBUG
+
+90-xdebug.ini
+
+zend_extension=xdebug.so
+xdebug.mode=debug
+xdebug.start_with_request=yes
+xdebug.discover_client_host=0
+xdebug.client_host=172.18.0.5
+xdebug.idekey = VSCODE
+
+-----------------------------------------------------
+-----------------------------------------------------
+-----------------------------------------------------
+-----------------------------------------------------
+
+
+

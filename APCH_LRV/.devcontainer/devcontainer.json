@@ -1,0 +1,19 @@
+{
+	"name": "APCH_LRV",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "php",
+	"workspaceFolder": "/var/www/html/joruevo/public",
+	"shutdownAction":"stopCompose",
+	"customizations": {		
+		"vscode": {						
+			"extensions": [
+				"xdebug.php-debug",
+				"bmewburn.vscode-intelephense-client",
+				"devsense.phptools-vscode",
+				"ryannaddy.laravel-artisan",
+				"onecentlin.laravel-blade",
+				"mrmlnc.vscode-apache"
+			]
+		}
+	}
+}

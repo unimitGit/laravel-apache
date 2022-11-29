@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+
+  php:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    container_name: apache-php
+    restart: unless-stopped
+    volumes:
+      - ./volumes/apache-content:/var/www/html/joruevo/public
+      - ./volumes/xdebug-content:/usr/local/etc/php/conf.d
+
+    networks:
+        apache_laravel_network:
+            ipv4_address: 172.18.0.2
+    ports:
+      - 80:80
+
+
+networks:
+  apache_laravel_network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.18.0.0/16
+
+
