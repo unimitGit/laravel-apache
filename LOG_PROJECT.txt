@@ -1,7 +1,7 @@
 
 WEB PROJECT PHP APACHE LARAVEL
 
-DEVELOPED BY: JOSE LUIS PABON BURBANO COLOMBIA
+DEVELOPED BY: JOSE LUIS PABON BURBANO - COLOMBIA
 
 -----------------------------------------------------
 -----------------------------------------------------
@@ -241,6 +241,8 @@ CREATING JORUEVO PROJECT
 
 composer create-project laravel/laravel joruevo
 
+**************
+
 ERROR
 
 permissions error
@@ -249,8 +251,9 @@ permissions error
 
 SOLUTION
 
-/var/www/html/joruevo/storage# chmod 777 logs  <--
+/var/www/html/joruevo/storage# chmod 777 logs  <-- only for demo
 
+**************
 
 ERROR
 permission error
@@ -259,8 +262,9 @@ permission error
 
 SOLUTION
 
-/var/www/html/joruevo/storage/framework# chmod 777 sessions <--
+/var/www/html/joruevo/storage/framework# chmod 777 sessions <-- only for demo
 
+**************
 
 ERROR
 permission error
@@ -269,10 +273,246 @@ permission error
 
 SOLUTION
 
-/var/www/html/joruevo/storage/framework# chmod 777 views <--
+/var/www/html/joruevo/storage/framework# chmod 777 views <-- only for demo
+
+**************
+
+ERROR
+permission error
+
+/var/www/html/joruevo/bootstrap/cache
+
+SOLUTION
+
+/var/www/html/joruevo/bootstrap# chmod 777 cache <-- only for demo
 
 
 -----------------------------------------------------
+
+modifying laravel directory structure for DDD
+
+based on
+
+https://www.hibit.dev/posts/43/domain-driven-design-with-laravel-9
+
+
+in App create directories:
+
+App
+
+    Application
+
+    Domain
+
+    Infrastructure
+
+    UserInterface
+        
+        Console
+
+        Controller
+
+
+
+* Create app/Infrastructure/Laravel folder [v]
+
+* Remove app/Http/Models/User.php  [v]
+
+* Move the base controller app/Http/Controllers/Controller.php to app/Infrastructure/Laravel/Controller.php [x]
+
+* Move HTTP Kernel app/Http/Kernel.php to app/Infrastructure/Laravel/Kernel/Http.php [x]
+
+    ORIGINAL
+
+    class Kernel extends HttpKernel ..
+
+
+    MODIFICATION
+
+    class Http extends HttpKernel
+
+
+* Move Console Kernel app/Console/Kernel.php to app/Infrastructure/Laravel/Kernel/Console.php [x]
+
+
+    ORIGINAL
+
+    class Kernel extends ConsoleKernel
+
+    MODIFICATION
+
+    class Console extends ConsoleKernel
+
+
+* Move app/Exceptions/Handler.php to app/Infrastructure/Laravel/Exception/Handler.php [x]
+
+
+* Update bootstrap/app.php to point the correct Kernels and exception handler [x]
+
+    ORIGINAL
+
+    $app->singleton(
+        Illuminate\Contracts\Http\Kernel::class,
+        App\Http\Kernel::class
+    );
+
+    $app->singleton(
+        Illuminate\Contracts\Console\Kernel::class,
+        App\Console\Kernel::class
+    );
+
+    $app->singleton(
+        Illuminate\Contracts\Debug\ExceptionHandler::class,
+        App\Exceptions\Handler::class
+    );
+
+    MODIFIED
+
+    $app->singleton(
+        Illuminate\Contracts\Http\Kernel::class,
+        App\Infrastructure\Laravel\Kernel\Http::class   <--
+    );
+
+    $app->singleton(
+        Illuminate\Contracts\Console\Kernel::class,
+        App\Infrastructure\Laravel\Kernel\Console::class   <--
+    );
+
+    $app->singleton(
+        Illuminate\Contracts\Debug\ExceptionHandler::class,
+        App\Infrastructure\Laravel\Exception\Handler::class   <--
+    );
+
+
+* Move app/Providers/* to app/Infrastructure/Laravel/Providers [x]
+
+* Update config/app.php to point the correct Providers  [x]
+
+
+    ORIGINAL
+
+
+             * Application Service Providers...
+             */
+            App\Providers\AppServiceProvider::class,
+            App\Providers\AuthServiceProvider::class,
+            // App\Providers\BroadcastServiceProvider::class,
+            App\Providers\EventServiceProvider::class,
+            App\Providers\RouteServiceProvider::class,
+
+        ],
+
+
+    MODIFIED
+
+             * Application Service Providers...
+             */
+            App\Infrastructure\Laravel\Provider\AppServiceProvider::class,
+            App\Infrastructure\Laravel\Provider\AuthServiceProvider::class,
+            // App\Providers\BroadcastServiceProvider::class,
+            App\Infrastructure\Laravel\Provider\EventServiceProvider::class,
+            App\Infrastructure\Laravel\Provider\RouteServiceProvider::class,
+
+
+* Move app/Http/Middleware/* to app/Infrastructure/Laravel/Middleware  [x]
+
+
+* Update the HTTP Kernel to point the correct middleware  [x]
+
+    app/Infrastructure/Laravel/Kernel/Http.php
+
+    class Http extends HttpKernel
+    {
+        /**
+         * The application's global HTTP middleware stack.
+         *
+         * These middleware are run during every request to your application.
+         *
+         * @var array<int, class-string|string>
+         */
+        protected $middleware = [
+            // \App\Http\Middleware\TrustHosts::class,
+            //\App\Http\Middleware\TrustProxies::class,
+            \App\Infrastructure\Laravel\Middleware\TrustProxies::class,  <--
+            \Illuminate\Http\Middleware\HandleCors::class,
+            //\App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+            \App\Infrastructure\Laravel\Middleware\PreventRequestsDuringMaintenance::class,  <--
+            \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+            //\App\Http\Middleware\TrimStrings::class,
+            \App\Infrastructure\Laravel\Middleware\TrimStrings::class,  <--
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ];
+
+        /**
+         * The application's route middleware groups.
+         *
+         * @var array<string, array<int, class-string|string>>
+         */
+        protected $middlewareGroups = [
+            'web' => [
+                //\App\Http\Middleware\EncryptCookies::class,
+                \App\Infrastructure\Laravel\Middleware\EncryptCookies::class,  <--
+                \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+                \Illuminate\Session\Middleware\StartSession::class,
+                \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+                //\App\Http\Middleware\VerifyCsrfToken::class,
+                \App\Infrastructure\Laravel\Middleware\VerifyCsrfToken::class,  <--
+                \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            ],
+
+            'api' => [
+                // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+                'throttle:api',
+                \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            ],
+        ];
+
+        /**
+         * The application's route middleware.
+         *
+         * These middleware may be assigned to groups or used individually.
+         *
+         * @var array<string, class-string|string>
+         */
+        protected $routeMiddleware = [
+            //'auth' => \App\Http\Middleware\Authenticate::class,
+            'auth' => \App\Infrastructure\Laravel\Middleware\Authenticate::class,  <--
+            'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+            'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+            'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+            'can' => \Illuminate\Auth\Middleware\Authorize::class,
+            //'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'guest' => \App\Infrastructure\Laravel\Middleware\RedirectIfAuthenticated::class,  <--
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+            //'signed' => \App\Http\Middleware\ValidateSignature::class,
+            'signed' => \App\Infrastructure\Laravel\Middleware\ValidateSignature::class,  <--
+            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ];
+    }
+
+-----------------------------------
+
+ERROR
+
+RedirectIfAuthenticated.php
+
+use App\Providers\RouteServiceProvider;  <-- error
+
+SOLUTION
+
+use App\Infrastructure\Laravel\Provider\RouteServiceProvider;
+
+-----------------------------------
+
+* delete Console directory [x]
+
+* delete Exceptions directory [x]
+
+* delete Http/Controllers & Http/Middleware [x]
+
+* delete Providers [x]
+
 -----------------------------------------------------
 -----------------------------------------------------
 
